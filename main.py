@@ -3,7 +3,7 @@ import sexp
 import pprint
 import translator
 from collections import deque
-
+from mysolver import hasIte, getSynFunExpr, Solver
 
 def Extend(Stmts, Productions):
     ret = []
@@ -93,50 +93,6 @@ def BFS(SynFunExpr, StartSym, FuncDefine, checker):
     # print (checker.check('(define-fun max2 ((x Int) (y Int)) Int (+ x y))'))
     # print (checker.check('(define-fun max2 ((x Int) (y Int)) Int (ite (<= x y) y x))'))
 
-def getSynFunExpr(bmExpr):
-    SynFunExpr = ""
-    for expr in bmExpr:
-        if len(expr) == 0:
-            continue
-        elif expr[0] == 'synth-fun':
-            SynFunExpr = expr
-    return SynFunExpr
-
-def getIte(prodRule):
-    for rule in prodRule:
-        for lst in rule[2]:
-            if isinstance(lst, list) and lst[0] == "ite":
-                return True
-    return False
-
-def parseArglist(lst, funcname):
-    
-
-def getCandidates(bmExpr):
-    def getc(expr):
-        if not(isinstance(expr, list) or isinstance(expr, tuple)):
-            return []
-        if expr[0] in ["=", ">=", "<="]:
-            expr1, expr2 = expr[1], expr[2]
-            if not isinstance(expr1, list):
-                expr1, expr2 = expr2, expr1
-            if not isinstance(expr1, list):
-                return []
-            if type(expr2) not in [str, int]:
-                return []
-            args = parseArglist(expr1)
-
-    
-    ret = []
-    for expr in bmExpr:
-        if not isinstance(expr, list):
-            continue
-        if len(expr) < 1 or expr[0] != "constraint":
-            continue
-        curcands = getc(expr[1:])
-        ret += curcands
-    return ret
-
 
 if __name__ == '__main__':
     benchmarkFile = open(sys.argv[1])
@@ -150,7 +106,7 @@ if __name__ == '__main__':
     StartSym = 'My-Start-Symbol'  # virtual starting symbol
     SynFunExpr = getSynFunExpr(bmExpr)
     ProdRule = SynFunExpr[4]
-    isIte = getIte(ProdRule)
+    isIte = hasIte(ProdRule)
     FuncDefine = ['define-fun'] + SynFunExpr[1:4]  # copy function signature
     # candidates = getCandidates(bmExpr)
     #print(FuncDefine)
@@ -158,4 +114,5 @@ if __name__ == '__main__':
         Ans = BFS(SynFunExpr, StartSym, FuncDefine, checker)
         print(Ans)
     else:
-        print("Here")
+        Ans = Solver(bmExpr)
+        print(Ans)
