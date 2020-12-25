@@ -30,25 +30,8 @@ def stripComments(bmFile):
     return noComments + ')'
 
 
-if __name__ == '__main__':
-    benchmarkFile = open(sys.argv[1])
-    bm = stripComments(benchmarkFile)
-    bmExpr = sexp.sexp.parseString(bm, parseAll=True).asList()[
-        0]  # Parse string to python list
-    # pprint.pprint(bmExpr)
-    checker = translator.ReadQuery(bmExpr)
-    #print (checker.check('(define-fun f ((x Int)) Int (mod (* x 3) 10)  )'))
-    #raw_input()
-    SynFunExpr = []
-    StartSym = 'My-Start-Symbol'  # virtual starting symbol
-    for expr in bmExpr:
-        if len(expr) == 0:
-            continue
-        elif expr[0] == 'synth-fun':
-            SynFunExpr = expr
-    FuncDefine = ['define-fun'] + SynFunExpr[1:4]  # copy function signature
-    #print(FuncDefine)
-    # BfsQueue = [[StartSym]]  # Top-down
+def BFS(SynFunExpr, StartSym, FuncDefine, checker):
+# BfsQueue = [[StartSym]]  # Top-down
     BfsQueue = deque([[StartSym]])
     Productions = {StartSym: []}
     Type = {StartSym: SynFunExpr[3]}  # set starting symbol's return type
@@ -70,7 +53,7 @@ if __name__ == '__main__':
     Count = 0
     TE_set = set()
     Ans = None
-    while(len(BfsQueue) != 0):
+    while len(BfsQueue) != 0:
         Curr = BfsQueue.popleft()
         #print("Extending "+str(Curr))
         # pprint.pprint("Expanding:")
@@ -87,21 +70,12 @@ if __name__ == '__main__':
             # insert Program just before the last bracket ')'
             Str = FuncDefineStr[:-1] + ' ' + CurrStr + FuncDefineStr[-1]
             Count += 1
-            # print (Count)
-            # print (Str)
-            # if Count % 100 == 1:
-            # print (Count)
-            # print (Str)
-            #raw_input()
-            #print '1'
-            # print("Here1")
             counterexample = checker.check(Str)
             #print counterexample
             # print("Here2")
             if(counterexample == None):  # No counter-example
                 Ans = Str
                 break
-            #print '2'
         #print(TryExtend)
         #raw_input()
         #BfsQueue+=TryExtend
@@ -111,10 +85,77 @@ if __name__ == '__main__':
             if not TE_str in TE_set:
                 BfsQueue.append(TE)
                 TE_set.add(TE_str)
-    print(Ans)
+    return Ans
 
 # Examples of counter-examples
 # print (checker.check('(define-fun max2 ((x Int) (y Int)) Int 0)'))
     # print (checker.check('(define-fun max2 ((x Int) (y Int)) Int x)'))
     # print (checker.check('(define-fun max2 ((x Int) (y Int)) Int (+ x y))'))
     # print (checker.check('(define-fun max2 ((x Int) (y Int)) Int (ite (<= x y) y x))'))
+
+def getSynFunExpr(bmExpr):
+    SynFunExpr = ""
+    for expr in bmExpr:
+        if len(expr) == 0:
+            continue
+        elif expr[0] == 'synth-fun':
+            SynFunExpr = expr
+    return SynFunExpr
+
+def getIte(prodRule):
+    for rule in prodRule:
+        for lst in rule[2]:
+            if isinstance(lst, list) and lst[0] == "ite":
+                return True
+    return False
+
+def parseArglist(lst, funcname):
+    
+
+def getCandidates(bmExpr):
+    def getc(expr):
+        if not(isinstance(expr, list) or isinstance(expr, tuple)):
+            return []
+        if expr[0] in ["=", ">=", "<="]:
+            expr1, expr2 = expr[1], expr[2]
+            if not isinstance(expr1, list):
+                expr1, expr2 = expr2, expr1
+            if not isinstance(expr1, list):
+                return []
+            if type(expr2) not in [str, int]:
+                return []
+            args = parseArglist(expr1)
+
+    
+    ret = []
+    for expr in bmExpr:
+        if not isinstance(expr, list):
+            continue
+        if len(expr) < 1 or expr[0] != "constraint":
+            continue
+        curcands = getc(expr[1:])
+        ret += curcands
+    return ret
+
+
+if __name__ == '__main__':
+    benchmarkFile = open(sys.argv[1])
+    bm = stripComments(benchmarkFile)
+    bmExpr = sexp.sexp.parseString(bm, parseAll=True).asList()[0]  # Parse string to python list
+    pprint.pprint(bmExpr)
+    checker = translator.ReadQuery(bmExpr)
+    #print (checker.check('(define-fun f ((x Int)) Int (mod (* x 3) 10)  )'))
+    #raw_input()
+    SynFunExpr = []
+    StartSym = 'My-Start-Symbol'  # virtual starting symbol
+    SynFunExpr = getSynFunExpr(bmExpr)
+    ProdRule = SynFunExpr[4]
+    isIte = getIte(ProdRule)
+    FuncDefine = ['define-fun'] + SynFunExpr[1:4]  # copy function signature
+    # candidates = getCandidates(bmExpr)
+    #print(FuncDefine)
+    if not isIte:
+        Ans = BFS(SynFunExpr, StartSym, FuncDefine, checker)
+        print(Ans)
+    else:
+        print("Here")
