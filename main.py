@@ -75,6 +75,8 @@ def BFS(SynFunExpr, StartSym, FuncDefine, checker):
             # print("Here2")
             if(counterexample == None):  # No counter-example
                 Ans = Str
+                print(FuncDefine)
+                print(Curr)
                 break
         #print(TryExtend)
         #raw_input()
@@ -98,7 +100,7 @@ if __name__ == '__main__':
     benchmarkFile = open(sys.argv[1])
     bm = stripComments(benchmarkFile)
     bmExpr = sexp.sexp.parseString(bm, parseAll=True).asList()[0]  # Parse string to python list
-    pprint.pprint(bmExpr)
+    # pprint.pprint(bmExpr)
     checker = translator.ReadQuery(bmExpr)
     #print (checker.check('(define-fun f ((x Int)) Int (mod (* x 3) 10)  )'))
     #raw_input()
@@ -115,4 +117,7 @@ if __name__ == '__main__':
         print(Ans)
     else:
         Ans = Solver(bmExpr)
-        print(Ans)
+        counterexample = checker.check(Ans)
+        if counterexample == None:
+            print(sys.argv[1], True)
+        # print(Ans)
