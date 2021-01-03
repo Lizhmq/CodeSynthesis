@@ -13,7 +13,6 @@
                  (+ Start Start)
                  (- Start Start)
                  (* Start Start)
-		 (* Start Start)
                  (ite StartBool Start Start)))
      (StartBool Bool ((and StartBool StartBool)
                       (or  StartBool StartBool)
