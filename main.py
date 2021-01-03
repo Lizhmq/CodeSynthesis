@@ -117,7 +117,7 @@ if __name__ == '__main__':
         print(Ans)
     else:
         Ans = Solver(bmExpr)
-        counterexample = checker.check(Ans)
-        if counterexample == None:
-            print(sys.argv[1], True)
-        # print(Ans)
+        # counterexample = checker.check(Ans)
+        # if counterexample == None:
+        #     print(sys.argv[1], True)
+        print(Ans)
