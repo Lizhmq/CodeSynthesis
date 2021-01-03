@@ -150,9 +150,9 @@ def generateTestcase(varlist, withmax=False):
     return ret
 
 def constraintEval(infoDict, constraint, testcase, funcdic):
-    if isinstance(constraint, tuple):
+    if isinstance(constraint, tuple) and isinstance(constraint[1], int):
         return constraint[1]
-    if isinstance(constraint, list):
+    if isinstance(constraint, list) or isinstance(constraint, tuple):
         if constraint[0] in ["and", "or"]:
             val1 = constraintEval(infoDict, constraint[1], testcase, funcdic)
             if constraint[0] == "and" and not val1:
